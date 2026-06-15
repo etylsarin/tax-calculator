@@ -1,0 +1,10 @@
+node_modules
+dist
+*.local
+.DS_Store
+*.tsbuildinfo
+.claude/
+
+# Never commit personal payslips or their reviews
+payslips/
+reports/
