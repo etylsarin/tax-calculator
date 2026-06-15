@@ -21,7 +21,8 @@ function weekdayHours(year: number, month: number): number {
 
 const DEFAULT_INPUT: PayrollInput = {
   monthlySalary: 0,
-  carAllowance: 16977,
+  carAllowance: 17000,
+  telephoneAllowance: 800,
   vacationDays: 0,
   averageHourlyRate: 0,
   monthlyWorkHours: weekdayHours(2026, new Date().getMonth() + 1),
@@ -86,6 +87,12 @@ export function App() {
               hint="Taxable cash allowance, also paid out"
               value={input.carAllowance}
               onChange={set("carAllowance")}
+            />
+            <NumberField
+              label="Telephone allowance"
+              hint="Taxable cash allowance, also paid out"
+              value={input.telephoneAllowance ?? 0}
+              onChange={set("telephoneAllowance")}
             />
           </fieldset>
 
@@ -230,6 +237,9 @@ export function App() {
           <Section title="Assessment base">
             <Row label="Gross salary" value={r.grossSalary} />
             <Row label="Car allowance" value={input.carAllowance} />
+            {(input.telephoneAllowance ?? 0) > 0 && (
+              <Row label="Telephone allowance" value={input.telephoneAllowance ?? 0} />
+            )}
             <Row label="Taxable insurance" value={input.taxableInsuranceMonthly} />
             <Row label="Taxable pension excess" value={r.taxablePensionExcess} />
             {input.otherTaxableBenefits > 0 && (
@@ -258,6 +268,9 @@ export function App() {
           <Section title="Net & payout">
             <Row label="Net salary" value={r.netSalary} />
             <Row label="+ Car allowance" value={input.carAllowance} />
+            {(input.telephoneAllowance ?? 0) > 0 && (
+              <Row label="+ Telephone allowance" value={input.telephoneAllowance ?? 0} />
+            )}
             <Row label="− Employee pension" value={-r.employeePension} />
             {input.multisport > 0 && <Row label="− Multisport" value={-input.multisport} />}
             {input.otherDeductions > 0 && (

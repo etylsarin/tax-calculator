@@ -298,6 +298,15 @@ describe("pay assembly", () => {
     expect(r.employerCost).toBe(expected);
     expect(r.socialEmployer).toBe(Math.ceil(r.base * 0.248)); // employer social rounds up
   });
+
+  it("telephone allowance is taxable (in the base) and paid out, like the car allowance", () => {
+    const without = calculatePayroll(mk({ monthlySalary: 40000, carAllowance: 0 }));
+    const withPhone = calculatePayroll(mk({ monthlySalary: 40000, carAllowance: 0, telephoneAllowance: 800 }));
+    expect(withPhone.base).toBe(without.base + 800); // added to the assessment base
+    expect(withPhone.toPay).toBe(withPhone.netSalary + 800); // and paid out on top of net
+    // It also flows into employer cost (by 800 + the extra employer insurance on it).
+    expect(withPhone.employerCost).toBeGreaterThan(without.employerCost + 800);
+  });
 });
 
 // ---------------------------------------------------------------------------
