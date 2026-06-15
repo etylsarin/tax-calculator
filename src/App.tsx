@@ -76,8 +76,8 @@ export function App() {
           <fieldset>
             <legend>Earnings (cash, taxable)</legend>
             <NumberField
-              label="Monthly salary"
-              hint="Contractual monthly gross salary"
+              label="Monthly salary (Rate)"
+              hint="The 'Rate' on your payslip — full-month salary, not the monthly 'Gross' (they differ when you take vacation/overtime)"
               value={input.monthlySalary}
               onChange={set("monthlySalary")}
             />
