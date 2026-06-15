@@ -2,22 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { calculatePayroll, PayrollInput } from "./lib/payroll";
 import { TAX_CONFIG_2026 } from "./lib/taxConfig";
 import { formatCZK } from "./lib/format";
+import { weekdayHours } from "./lib/calendar";
+import { decodeShareLink, encodeShareLink } from "./lib/shareLink";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
-
-/** Count of weekdays (Mon–Fri, holidays included) in a month, × 8 hours. */
-function weekdayHours(year: number, month: number): number {
-  const days = new Date(year, month, 0).getDate();
-  let weekdays = 0;
-  for (let d = 1; d <= days; d++) {
-    const dow = new Date(year, month - 1, d).getDay();
-    if (dow !== 0 && dow !== 6) weekdays++;
-  }
-  return weekdays * 8;
-}
 
 const DEFAULT_INPUT: PayrollInput = {
   monthlySalary: 0,
@@ -38,10 +29,34 @@ const DEFAULT_INPUT: PayrollInput = {
   otherDeductions: 0,
 };
 
+/** Build the initial form state, prepopulated from a `?d=…` share link if present. */
+function initialInput(): PayrollInput {
+  const shared = decodeShareLink(new URLSearchParams(window.location.search).get("d"));
+  const next = { ...DEFAULT_INPUT, ...shared };
+  // A share link omits working hours when they match the month's default — re-derive them.
+  if (shared.month !== undefined && shared.monthlyWorkHours === undefined) {
+    next.monthlyWorkHours = weekdayHours(TAX_CONFIG_2026.year, shared.month);
+  }
+  return next;
+}
+
 export function App() {
-  const [input, setInput] = useState<PayrollInput>(DEFAULT_INPUT);
+  const [input, setInput] = useState<PayrollInput>(initialInput);
+  const [copied, setCopied] = useState(false);
   const cfg = TAX_CONFIG_2026;
   const r = useMemo(() => calculatePayroll(input, cfg), [input, cfg]);
+
+  const copyShareLink = async () => {
+    const { origin, pathname } = window.location;
+    const url = `${origin}${pathname}?d=${encodeShareLink(input)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Copy this link:", url);
+    }
+  };
 
   // When the month changes, refresh the default working hours for that month.
   const setMonth = (month: number) =>
@@ -55,10 +70,15 @@ export function App() {
   return (
     <div className="app">
       <header>
-        <h1>Czech Salary Calculator</h1>
-        <p className="subtitle">
-          Employee net pay · tax year {cfg.year} · based on Czech tax law
-        </p>
+        <div className="header-main">
+          <h1>Czech Salary Calculator</h1>
+          <p className="subtitle">
+            Employee net pay · tax year {cfg.year} · based on Czech tax law
+          </p>
+        </div>
+        <button type="button" className="share-btn" onClick={copyShareLink}>
+          {copied ? "Link copied!" : "Copy share link"}
+        </button>
       </header>
 
       <div className="layout">
