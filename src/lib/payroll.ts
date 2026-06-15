@@ -5,6 +5,8 @@ export interface PayrollInput {
   monthlySalary: number;
   /** Taxable cash car allowance — added to the assessment base AND paid out in cash. */
   carAllowance: number;
+  /** Taxable cash telephone allowance — added to the assessment base AND paid out. Defaults to 0. */
+  telephoneAllowance?: number;
 
   // --- Vacation ---
   /** Vacation taken this month, in days (supports half-days). Defaults to 0. */
@@ -183,11 +185,14 @@ export function calculatePayroll(
   const currentExcess = Math.max(0, priorSavings + employerPension - exemption);
   const taxablePensionExcess = currentExcess - priorExcess;
 
+  // Taxable cash allowances (added to the base AND paid out).
+  const cashAllowances = input.carAllowance + (input.telephoneAllowance ?? 0);
+
   // --- Combined tax & insurance assessment base (never negative) ---
   const base = Math.max(
     0,
     grossSalary +
-      input.carAllowance +
+      cashAllowances +
       input.taxableInsuranceMonthly +
       taxablePensionExcess +
       input.otherTaxableBenefits,
@@ -233,11 +238,11 @@ export function calculatePayroll(
   const postTaxDeductions = employeePension + input.multisport + input.otherDeductions;
   const netSalary =
     grossSalary - incomeTax + taxBonus - healthEmployee - socialEmployee;
-  const toPay = netSalary + input.carAllowance - postTaxDeductions;
+  const toPay = netSalary + cashAllowances - postTaxDeductions;
 
   const employerCost =
     grossSalary +
-    input.carAllowance +
+    cashAllowances +
     healthEmployer +
     socialEmployer +
     employerPension +
