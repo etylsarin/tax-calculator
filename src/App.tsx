@@ -228,6 +228,18 @@ export function App() {
             <span className="headline-value">{formatCZK(r.toPay)}</span>
           </div>
 
+          <button
+            type="button"
+            className="download-pdf"
+            onClick={async () => {
+              // Lazy-load jsPDF so it isn't in the initial bundle.
+              const { downloadPayslip } = await import("./lib/exportPdf");
+              downloadPayslip(input, r, cfg);
+            }}
+          >
+            ⬇ Download PDF
+          </button>
+
           <Section title="Gross salary">
             <Row label="Basic wage" value={r.basicWage} />
             {r.vacationPay > 0 && <Row label="Vacation pay" value={r.vacationPay} />}
